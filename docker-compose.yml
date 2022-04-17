@@ -1,0 +1,14 @@
+version: '3.1'
+services:
+  signal1:
+    build:
+      context: SignalRChat
+      dockerfile: Dockerfile
+    ports:
+      - 8080:80
+  signal2:
+    build:
+      context: SignalRChat
+      dockerfile: Dockerfile
+    ports:
+      - 8081:80

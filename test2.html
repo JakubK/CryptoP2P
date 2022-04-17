@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <input id="url" type="text"/>
+  <button id="submit">Submit Url</button>
+  <br/>
+  <input id="message" type="text"/>
+  <button id="submitMsg" type="text">Submit message</button>
+  <div id="chat">
+    
+  </div>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.4/signalr.min.js"></script>
+  <script>
+    const input = document.getElementById('url');
+    const button = document.getElementById('submit');
+    const chat = document.getElementById('chat');
+
+    const message = document.getElementById('message');
+    const submitMsg = document.getElementById('submitMsg');
+    
+    const mySignalConnection = new signalR.HubConnectionBuilder()
+      .withUrl('http://localhost:8081/chathub')
+      .build();
+
+    
+
+    mySignalConnection.start({ withCredentials: false }).then(() => {
+      mySignalConnection.on('DeliverMessage', function (message) {
+        chat.innerText += '\n ' + "Peer: " + message;
+      });
+    });
+
+    let otherSignalConnection;
+
+    button.addEventListener('click', () => {
+      if(!otherSignalConnection) {
+        otherSignalConnection = new signalR.HubConnectionBuilder().withUrl(input.value).build();
+        otherSignalConnection.start({ withCredentials: false }).then(() => {
+          otherSignalConnection.on('MessageDelivered', function (message) {
+            chat.innerText += '\n ' + "Me: " + message;
+          });
+        });
+      }
+    });
+
+    
+
+    submitMsg.addEventListener('click', () => {
+      if(otherSignalConnection) {
+        otherSignalConnection.invoke('SendMessage', message.value);
+        message.value = '';
+      }
+    })
+  </script>
+</body>
+</html>
