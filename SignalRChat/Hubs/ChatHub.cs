@@ -6,8 +6,11 @@ public class ChatHub : Hub
 {
   public async Task SendMessage(string message)
   {
-    await Clients.All.SendAsync("DeliverMessage", message);
-    await Clients.Caller.SendAsync("MessageDelivered", message);
+    await Clients.All.SendAsync("SendMessage", message);
   }
 
+  public async Task InitConversation(string chatEndpoint)
+  {
+    await Clients.All.SendAsync("PeerRequest", chatEndpoint);
+  }
 }
