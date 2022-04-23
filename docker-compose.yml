@@ -12,3 +12,9 @@ services:
       dockerfile: Dockerfile
     ports:
       - 8081:80
+  app:
+    build:
+      context: CryptoP2P
+      dockerfile: Dockerfile
+    ports:
+      - 80:80

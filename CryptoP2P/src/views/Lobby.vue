@@ -23,7 +23,6 @@ const connectWithServer = async () => {
     peerServerReached.value = true;
   })
   myConnection.value.on('ReceiveMessage', (msg:string) => {
-    console.log('xd');
     messageLog.value?.push('Peer: ' + msg);
   });
 }

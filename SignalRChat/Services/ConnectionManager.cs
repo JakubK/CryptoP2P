@@ -7,7 +7,6 @@ namespace SignalRChat.Services;
 public class ConnectionManager : IConnectionManager
 {
   private HubConnection _peerConnection;
-  private string _url = "";
 
   private readonly ICryptoManager _cryptoManager;
 
@@ -21,7 +20,6 @@ public class ConnectionManager : IConnectionManager
     _peerConnection = new HubConnectionBuilder()
       .WithUrl(url)
       .Build();
-    _url = url;
     await _peerConnection.StartAsync();
     RegisterHandlers();
   }
