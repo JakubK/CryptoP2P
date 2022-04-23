@@ -2,72 +2,67 @@
 import { HubConnectionBuilder } from '@microsoft/signalr'
 import { ref } from 'vue';
 
-import { myConnection, peerConnection } from '../modules/connections';
+import { myConnection } from '../modules/connections';
 
 const myServerUrl = ref<string>();
-const localServerReached = ref<boolean>();
-localServerReached.value = false;
+const myServerActive = ref<boolean>();
+myServerActive.value = false;
 
-const connectWithMySignalR = async () => {
+const connectWithServer = async () => {
   myConnection.value = new HubConnectionBuilder()
     .withUrl(myServerUrl.value!)
     .build();
+
   await myConnection.value.start();
 
-  localServerReached.value = true;
-  myConnection.value.on('PeerRequest', async chatEndpoint => {
-    peerServerUrl.value = chatEndpoint;
-    await connectWithPeerSignalR(false);
+  myConnection.value.invoke('ConnectOwner');
+  myConnection.value.on('ConnectOwnerResponse', () => {
+    myServerActive.value = true;
+  });
+  myConnection.value.on('ConversationStarted', () => {
+    peerServerReached.value = true;
   })
+  myConnection.value.on('ReceiveMessage', (msg:string) => {
+    console.log('xd');
+    messageLog.value?.push('Peer: ' + msg);
+  });
 }
 
 const peerServerUrl = ref<string>();
 const peerServerReached = ref<boolean>();
 peerServerReached.value = false;
 
+const connectWithPeerSignalR = () => {
+  myConnection.value?.invoke('InitConversation', peerServerUrl.value);
+};
+
+const message = ref<string>();
 const messageLog = ref<Array<any>>();
 messageLog.value = [];
 
-const connectWithPeerSignalR = async (autoInitConversation: boolean = true) => {
-  peerConnection.value = new HubConnectionBuilder()
-    .withUrl(peerServerUrl.value!)
-    .build();
-  await peerConnection.value.start();
-  //wait for acceptance
-  peerServerReached.value = true;
-  myConnection.value!.on('SendMessage', message => {
-    //append text from Peer
-    messageLog.value?.push('Peer: ' + message);
-  });
-
-  if(autoInitConversation)
-    peerConnection.value.invoke('InitConversation', myServerUrl.value);
-}
-
-const message = ref<string>();
 const submitMessage = () => {
-  peerConnection.value!.invoke('SendMessage', message.value);
   messageLog.value?.push('Me: ' + message.value);
-  message.value = '';
+  myConnection.value?.invoke('SendMessage', message.value);
 }
 
 </script>
 
 <template>
-  <div v-if="!localServerReached">
+  <div v-if="!myServerActive">
     Its lobby:<br>
     <input v-model="myServerUrl" type="text" placeholder="Pass in your SignalR Server address" />
-    <button @click="connectWithMySignalR">Connect with my SignalR Server</button>
+    <button @click="connectWithServer">Connect with my SignalR Server</button>
   </div>
   <div v-else-if="!peerServerReached">
     Connected with my: {{ myServerUrl }} <br>
     <input v-model="peerServerUrl" type="text" placeholder="Pass in peer SignalR Server address" />
     <button @click="connectWithPeerSignalR()">Connect with peer SignalR Server</button>
   </div>
-  <div v-show="peerServerReached">
+  <div v-else>
+    Conversation Started!!!!!
     <input v-model="message" type="text"/>
     <button @click="submitMessage">Submit message</button>
-    <div id="chat">
+    <div>
       <div v-for="(message, index) in messageLog" :key="index">
         {{ message }}
       </div>
