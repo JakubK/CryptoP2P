@@ -21,9 +21,11 @@ public class FileController : ControllerBase
     using var fileStream = new FileStream(filePath, FileMode.Create);
     await formFile.CopyToAsync(fileStream);
 
+    var outputPath = Path.Combine("static", formFile.FileName);
+    
     return Ok(new ChatMessage
     {
-      Message = filePath
+      Message = outputPath
     });
   }
 }

@@ -28,6 +28,9 @@ app.UseStaticFiles(new StaticFileOptions
     FileProvider = new PhysicalFileProvider(
         Path.Combine(app.Environment.WebRootPath, "static")
     ),
+    OnPrepareResponse = ctx => {
+        ctx.Context.Response.Headers.Add("Content-Disposition", "attachment");
+    },
     RequestPath = "/static"
 });
 app.UseRouting();

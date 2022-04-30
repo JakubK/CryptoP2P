@@ -21,20 +21,16 @@ public class ChatHub : Hub
     _cryptoVault = cryptoVault;
   }
 
-  //  Method called by Frontend Client to register as Server owner
-  public async Task ConnectOwner()
-  {
-    await Clients.Caller.SendAsync("ConnectOwnerResponse");
-  }
-
   // Called on any peer wanting to send a message
-  public async Task SendMessage(string message)
+  public async Task SendMessage(ChatMessage chatMessage)
   {
     //  Encrypt given message via session key
-    var encryptedMessage = _cryptoManager.Encrypt(message);
+    var encryptedMessage = _cryptoManager.Encrypt(chatMessage.Message);
     await _connectionManager.InvokeAsync("ReceiveEncryptedMessage", new EncryptedChatMessage
     {
-      EncryptedMessage = encryptedMessage
+      EncryptedMessage = encryptedMessage,
+      Type = chatMessage.Type,
+      BlockMode = chatMessage.BlockMode
     });
   }
 

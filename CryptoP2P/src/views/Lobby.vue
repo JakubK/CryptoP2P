@@ -15,16 +15,13 @@ const connectWithServer = async () => {
     .build();
 
   await myConnection.value.start();
+  myServerActive.value = true;
 
-  myConnection.value.invoke('ConnectOwner');
-  myConnection.value.on('ConnectOwnerResponse', () => {
-    myServerActive.value = true;
-  });
   myConnection.value.on('ConversationStarted', () => {
     peerServerReached.value = true;
   })
   myConnection.value.on('ReceiveMessage', (msg:ChatMessage) => {
-    messageLog.value?.push('Peer: ' + msg.message);
+    messageLog.value?.push(msg);
   });
 }
 
@@ -37,12 +34,21 @@ const connectWithPeerSignalR = () => {
 };
 
 const message = ref<string>();
-const messageLog = ref<Array<any>>();
+const messageLog = ref<Array<ChatMessage>>();
 messageLog.value = [];
 
 const submitMessage = () => {
-  messageLog.value?.push('Me: ' + message.value);
-  myConnection.value?.invoke('SendMessage', message.value);
+  const messageObject: ChatMessage = {
+    blockMode: '',
+    type: 'text',
+    message: message.value!
+  }
+  myConnection.value?.invoke('SendMessage', messageObject);
+  const loggedMessage: ChatMessage = {
+    ...messageObject,
+    message: 'Me: ' + messageObject.message
+  }
+  messageLog.value?.push(loggedMessage);
 }
 
 const onFileChange = async (event: Event) => {
@@ -56,8 +62,15 @@ const onFileChange = async (event: Event) => {
     method: 'POST',
     body: data
   });
-  const json = await response.json();
-  console.log(json);
+
+  const jsonResponse = await response.json();
+  const messageObject: ChatMessage = {
+    blockMode: '',
+    type: 'file',
+    message: myServerUrl.value + '/' + jsonResponse.message
+  }
+  myConnection.value?.invoke('SendMessage', messageObject)
+  messageLog.value?.push(messageObject);
 }
 
 </script>
@@ -79,9 +92,14 @@ const onFileChange = async (event: Event) => {
     <button @click="submitMessage">Submit message</button>
     <input @change="onFileChange" type="file"/>
     <div>
-      <div v-for="(message, index) in messageLog" :key="index">
-        {{ message }}
-      </div>
+      <template v-for="(message, index) in messageLog" :key="index">
+        <div v-if="message.type === 'text'">
+          {{ message.message }}
+        </div>
+        <div v-else>
+          <a :href="message.message" download>File</a>
+        </div>
+      </template>
     </div>
   </div>
 </template>
