@@ -11,7 +11,7 @@ myServerActive.value = false;
 
 const connectWithServer = async () => {
   myConnection.value = new HubConnectionBuilder()
-    .withUrl(myServerUrl.value!)
+    .withUrl(myServerUrl.value! + '/chat')
     .build();
 
   await myConnection.value.start();
@@ -33,7 +33,7 @@ const peerServerReached = ref<boolean>();
 peerServerReached.value = false;
 
 const connectWithPeerSignalR = () => {
-  myConnection.value?.invoke('InitConversation', peerServerUrl.value);
+  myConnection.value?.invoke('InitConversation', peerServerUrl.value + "/chat");
 };
 
 const message = ref<string>();
@@ -43,6 +43,21 @@ messageLog.value = [];
 const submitMessage = () => {
   messageLog.value?.push('Me: ' + message.value);
   myConnection.value?.invoke('SendMessage', message.value);
+}
+
+const onFileChange = async (event: Event) => {
+  const target = event.target as HTMLInputElement;
+
+  const data = new FormData();
+  if(target.files === null )
+    return;
+  data.append('formFile', target.files[0]);
+  const response = await fetch(myServerUrl.value + '/file', {
+    method: 'POST',
+    body: data
+  });
+  const json = await response.json();
+  console.log(json);
 }
 
 </script>
@@ -62,6 +77,7 @@ const submitMessage = () => {
     Conversation Started!!!!!
     <input v-model="message" type="text"/>
     <button @click="submitMessage">Submit message</button>
+    <input @change="onFileChange" type="file"/>
     <div>
       <div v-for="(message, index) in messageLog" :key="index">
         {{ message }}

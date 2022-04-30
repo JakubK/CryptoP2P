@@ -1,5 +1,6 @@
 using CryptoP2P.Backend.Hubs;
 using CryptoP2P.Backend.Services;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,7 @@ builder.Services.AddSingleton<ICryptoManager, CryptoManager>();
 builder.Services.AddSignalR(options => {
     options.EnableDetailedErrors = true; 
 });
+builder.Services.AddControllers();
 
 builder.Services.AddCors(options => options.AddPolicy("CorsPolicy",
     builder =>
@@ -21,11 +23,17 @@ builder.Services.AddCors(options => options.AddPolicy("CorsPolicy",
     }));
 
 var app = builder.Build();
-
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(app.Environment.WebRootPath, "static")
+    ),
+    RequestPath = "/static"
+});
 app.UseRouting();
 app.UseCors("CorsPolicy");
 app.UseEndpoints(endpoints => {
+    endpoints.MapControllers();
     endpoints.MapHub<ChatHub>("/chat");
 });
 app.Run();
