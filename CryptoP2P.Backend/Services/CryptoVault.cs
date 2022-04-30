@@ -1,6 +1,6 @@
-using SignalRChat.Models;
+using CryptoP2P.Backend.Models;
 
-namespace SignalRChat.Services;
+namespace CryptoP2P.Backend.Services;
 
 public class CryptoVault : ICryptoVault
 {

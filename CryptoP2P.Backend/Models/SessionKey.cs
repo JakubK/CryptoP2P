@@ -1,4 +1,4 @@
-namespace SignalRChat.Models;
+namespace CryptoP2P.Backend.Models;
 
 public class SessionKey
 {

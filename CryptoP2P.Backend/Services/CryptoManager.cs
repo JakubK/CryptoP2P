@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace SignalRChat.Services;
+namespace CryptoP2P.Backend.Services;
 
 public class CryptoManager : ICryptoManager
 {

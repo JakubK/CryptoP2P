@@ -1,5 +1,5 @@
-using SignalRChat.Hubs;
-using SignalRChat.Services;
+using CryptoP2P.Backend.Hubs;
+using CryptoP2P.Backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

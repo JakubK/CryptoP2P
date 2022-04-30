@@ -8,7 +8,7 @@
     }
   },
   "profiles": {
-    "SignalRChat": {
+    "CryptoP2P.Backend": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,

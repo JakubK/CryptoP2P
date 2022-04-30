@@ -3,11 +3,11 @@ using System.Text;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
-using SignalRChat.Messages;
-using SignalRChat.Models;
-using SignalRChat.Services;
+using CryptoP2P.Backend.Messages;
+using CryptoP2P.Backend.Models;
+using CryptoP2P.Backend.Services;
 
-namespace SignalRChat.Hubs;
+namespace CryptoP2P.Backend.Hubs;
 
 public class ChatHub : Hub
 {

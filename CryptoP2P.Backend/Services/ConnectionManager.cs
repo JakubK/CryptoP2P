@@ -1,9 +1,9 @@
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.SignalR.Client;
-using SignalRChat.Messages;
-using SignalRChat.Models;
+using CryptoP2P.Backend.Messages;
+using CryptoP2P.Backend.Models;
 
-namespace SignalRChat.Services;
+namespace CryptoP2P.Backend.Services;
 
 public class ConnectionManager : IConnectionManager
 {

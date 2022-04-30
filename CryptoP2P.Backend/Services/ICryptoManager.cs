@@ -1,4 +1,4 @@
-namespace SignalRChat.Services;
+namespace CryptoP2P.Backend.Services;
 
 public interface ICryptoManager
 {
