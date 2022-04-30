@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { HubConnectionBuilder } from '@microsoft/signalr'
 import { ref } from 'vue';
+import { ChatMessage } from '../models/chatMessage';
 
 import { myConnection } from '../modules/connections';
 
@@ -22,8 +23,8 @@ const connectWithServer = async () => {
   myConnection.value.on('ConversationStarted', () => {
     peerServerReached.value = true;
   })
-  myConnection.value.on('ReceiveMessage', (msg:string) => {
-    messageLog.value?.push('Peer: ' + msg);
+  myConnection.value.on('ReceiveMessage', (msg:ChatMessage) => {
+    messageLog.value?.push('Peer: ' + msg.message);
   });
 }
 

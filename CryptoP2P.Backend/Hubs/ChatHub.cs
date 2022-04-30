@@ -33,13 +33,21 @@ public class ChatHub : Hub
   {
     //  Encrypt given message via session key
     var encryptedMessage = _cryptoManager.Encrypt(message);
-    await _connectionManager.InvokeAsync("ReceiveEncryptedMessage", encryptedMessage);
+    await _connectionManager.InvokeAsync("ReceiveEncryptedMessage", new EncryptedChatMessage
+    {
+      EncryptedMessage = encryptedMessage
+    });
   }
 
-  public async Task ReceiveEncryptedMessage(byte[] encryptedMessage)
+  public async Task ReceiveEncryptedMessage(EncryptedChatMessage encryptedChatMessage)
   {
-    var message = _cryptoManager.Decrypt(encryptedMessage);
-    await Clients.All.SendAsync("ReceiveMessage", message);
+    var message = _cryptoManager.Decrypt(encryptedChatMessage.EncryptedMessage);
+    await Clients.All.SendAsync("ReceiveMessage", new ChatMessage
+    {
+      BlockMode = encryptedChatMessage.BlockMode,
+      Message = message,
+      Type = encryptedChatMessage.Type
+    });
   }
 
   //  Method called by Frontend Client to connect with Peer
