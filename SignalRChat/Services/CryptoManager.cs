@@ -5,47 +5,27 @@ namespace SignalRChat.Services;
 
 public class CryptoManager : ICryptoManager
 {
-  private byte[] _privateKey;
-  private byte[] _publicKey;
-
-  private byte[] _key;
-  private byte[] _iv;
+  private readonly ICryptoVault _cryptoVault;
+  public CryptoManager(ICryptoVault cryptoVault)
+  {
+    _cryptoVault = cryptoVault;
+  }
 
   public string Decrypt(byte[] encryptedMessage)
   {
     using var aes = Aes.Create();
-    aes.Key = _key;
-    aes.IV = _iv;
-    return Encoding.UTF8.GetString(aes.DecryptCbc(encryptedMessage, _iv));
+    var sessionKey = _cryptoVault.LoadSessionkey();
+    aes.Key = sessionKey.Key;
+    aes.IV = sessionKey.IV;
+    return Encoding.UTF8.GetString(aes.DecryptCbc(encryptedMessage, aes.IV));
   }
 
   public byte[] Encrypt(string message)
   {
     using var aes = Aes.Create();
-    aes.Key = _key;
-    aes.IV = _iv;
-    return aes.EncryptCbc(Encoding.UTF8.GetBytes(message), _iv);
-  }
-
-  public byte[] LoadPrivateKey() => _privateKey;
-
-  public byte[] LoadPublicKey() => _publicKey;
-
-  public (byte[], byte[]) LoadSessionkey() => (_key, _iv);
-
-  public void StorePrivateKey(byte[] privateKey)
-  {
-    _privateKey = privateKey;
-  }
-
-  public void StorePublicKey(byte[] publicKey)
-  {
-    _publicKey = publicKey;
-  }
-
-  public void StoreSessionKey(byte[] key, byte[] iv)
-  {
-    _key = key;
-    _iv = iv;
+    var sessionKey = _cryptoVault.LoadSessionkey();
+    aes.Key = sessionKey.Key;
+    aes.IV = sessionKey.IV;
+    return aes.EncryptCbc(Encoding.UTF8.GetBytes(message), aes.IV);
   }
 }

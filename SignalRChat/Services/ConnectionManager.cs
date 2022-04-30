@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.SignalR.Client;
 using SignalRChat.Messages;
+using SignalRChat.Models;
 
 namespace SignalRChat.Services;
 
@@ -8,11 +9,14 @@ public class ConnectionManager : IConnectionManager
 {
   private HubConnection _peerConnection;
 
-  private readonly ICryptoManager _cryptoManager;
 
-  public ConnectionManager(ICryptoManager cryptoManager)
+  private readonly ICryptoManager _cryptoManager;
+  private readonly ICryptoVault _cryptoVault;
+
+  public ConnectionManager(ICryptoManager cryptoManager, ICryptoVault cryptoVault)
   {
     _cryptoManager = cryptoManager;
+    _cryptoVault = cryptoVault;
   }
 
   public async Task ConnectPeer(string url)
@@ -40,17 +44,20 @@ public class ConnectionManager : IConnectionManager
     // Called by other server to initiator server
     // Everything is setup, passes session key encrypted via acquired public key
     _peerConnection.On<InitConversationMessage>("ServerServerInitResponse", async (message) => {
-      _cryptoManager.StorePublicKey(message.InitiatorPublicKey);
+      _cryptoVault.SavePublicKey(message.InitiatorPublicKey);
       //  Generate Session Key
       using var aes = Aes.Create();
 
       var key = aes.Key;
       var iv = aes.IV;
 
-      _cryptoManager.StoreSessionKey(key, iv);
+      _cryptoVault.SaveSessionKey(new SessionKey{
+        Key = key,
+        IV = iv
+      });
 
       using var rsa = RSA.Create();
-      rsa.ImportRSAPublicKey(_cryptoManager.LoadPublicKey(), out int _);
+      rsa.ImportRSAPublicKey(_cryptoVault.LoadPublicKey(), out int _);
       key = rsa.Encrypt(key, RSAEncryptionPadding.Pkcs1);
       iv = rsa.Encrypt(iv, RSAEncryptionPadding.Pkcs1);
       await _peerConnection.InvokeAsync("PassSessionKey", new PassSessionKeyMessage

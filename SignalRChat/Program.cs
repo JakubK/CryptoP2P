@@ -4,6 +4,7 @@ using SignalRChat.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddSingleton<ICryptoVault, CryptoVault>();
 builder.Services.AddSingleton<IConnectionManager, ConnectionManager>();
 builder.Services.AddSingleton<ICryptoManager, CryptoManager>();
 builder.Services.AddSignalR(options => {

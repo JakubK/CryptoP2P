@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using SignalRChat.Messages;
+using SignalRChat.Models;
 using SignalRChat.Services;
 
 namespace SignalRChat.Hubs;
@@ -12,11 +13,13 @@ public class ChatHub : Hub
 {
   private readonly IConnectionManager _connectionManager;
   private readonly ICryptoManager _cryptoManager;
+  private readonly ICryptoVault _cryptoVault;
 
-  public ChatHub(IConnectionManager connectionManager, ICryptoManager cryptoManager)
+  public ChatHub(IConnectionManager connectionManager, ICryptoManager cryptoManager, ICryptoVault cryptoVault)
   {
     _connectionManager = connectionManager;
     _cryptoManager = cryptoManager;
+    _cryptoVault = cryptoVault;
   }
 
   //  Method called by Frontend Client to register as Server owner
@@ -47,7 +50,7 @@ public class ChatHub : Hub
 
     //  Generate RSA
     using var rsa = RSA.Create();
-    _cryptoManager.StorePrivateKey(rsa.ExportRSAPrivateKey());
+    _cryptoVault.SavePrivateKey(rsa.ExportRSAPrivateKey());
     var myPublicKey = rsa.ExportRSAPublicKey();
     
     await _connectionManager.InvokeAsync("ServerServerInit", new InitConversationMessage
@@ -65,11 +68,11 @@ public class ChatHub : Hub
     var endpoint = "http://" + feature.RemoteIpAddress.MapToIPv4() + "/chat";
     await _connectionManager.ConnectPeer(endpoint);
 
-    _cryptoManager.StorePublicKey(message.InitiatorPublicKey);
+    _cryptoVault.SavePublicKey(message.InitiatorPublicKey);
 
     //  Generate RSA of my own and pass public key to initiator
     using var rsa = RSA.Create();
-    _cryptoManager.StorePrivateKey(rsa.ExportRSAPrivateKey());
+    _cryptoVault.SavePrivateKey(rsa.ExportRSAPrivateKey());
     var myPublicKey = rsa.ExportRSAPublicKey();
 
     await Clients.All.SendAsync("ServerServerInitResponse", new InitConversationMessage
@@ -84,10 +87,13 @@ public class ChatHub : Hub
   public async Task PassSessionKey(PassSessionKeyMessage message)
   {
     using var rsa = RSA.Create();
-    rsa.ImportRSAPrivateKey(_cryptoManager.LoadPrivateKey(), out var _);
-    _cryptoManager.StoreSessionKey(
-      rsa.Decrypt(message.Key, RSAEncryptionPadding.Pkcs1),
-      rsa.Decrypt(message.IV, RSAEncryptionPadding.Pkcs1)
+    rsa.ImportRSAPrivateKey(_cryptoVault.LoadPrivateKey(), out var _);
+    _cryptoVault.SaveSessionKey(
+      new SessionKey()
+      {
+        Key = rsa.Decrypt(message.Key, RSAEncryptionPadding.Pkcs1),
+        IV = rsa.Decrypt(message.IV, RSAEncryptionPadding.Pkcs1)
+      }
     );
     await _connectionManager.InvokeAsync("PassSessionComplete");
     await Clients.All.SendAsync("ConversationStarted");
