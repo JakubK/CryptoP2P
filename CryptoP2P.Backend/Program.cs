@@ -22,6 +22,8 @@ builder.Services.AddCors(options => options.AddPolicy("CorsPolicy",
             .AllowCredentials();
     }));
 
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
 app.UseStaticFiles(new StaticFileOptions
 {
@@ -33,6 +35,10 @@ app.UseStaticFiles(new StaticFileOptions
     },
     RequestPath = "/static"
 });
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
 app.UseRouting();
 app.UseCors("CorsPolicy");
 app.UseEndpoints(endpoints => {
