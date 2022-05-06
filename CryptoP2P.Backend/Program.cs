@@ -1,5 +1,7 @@
+using CryptoP2P.Backend.Data;
 using CryptoP2P.Backend.Hubs;
 using CryptoP2P.Backend.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +10,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<ICryptoVault, CryptoVault>();
 builder.Services.AddSingleton<IConnectionManager, ConnectionManager>();
 builder.Services.AddSingleton<ICryptoManager, CryptoManager>();
+
+builder.Services.AddDbContext<AppDbContext>(options => {
+    options.UseSqlite();
+});
+
 builder.Services.AddSignalR(options => {
     options.EnableDetailedErrors = true; 
 });
