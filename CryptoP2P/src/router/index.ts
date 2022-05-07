@@ -1,10 +1,28 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 
 import Lobby from '../views/Lobby.vue';
+import Register from '../views/Register.vue';
+import Login from '../views/Login.vue';
+import Connect from '../views/Connect.vue';
 
-const routes = [
+const routes: RouteRecordRaw[] = [
   {
     path: '/',
+    name: 'Connect',
+    component: Connect
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: Login
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: Register
+  },
+  {
+    path: '/lobby',
     name: 'Lobby',
     component: Lobby
   }

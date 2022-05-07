@@ -4,6 +4,9 @@ namespace CryptoP2P.Backend.Services;
 
 public interface ICryptoVault
 {
+  void SaveMyPublicKey(byte[] myPublicKey);
+  byte[] LoadMyPublicKey();
+
   void SavePrivateKey(byte[] privateKey);
   byte[] LoadPrivateKey();
 

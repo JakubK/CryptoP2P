@@ -7,4 +7,6 @@ public class User
   public byte[] PublicKey { get; set; }
   public byte[] EncryptedPrivateKey { get; set; }
   public byte[] IV { get; set; }
+
+  public byte[] PasswordHash { get; set; }
 }

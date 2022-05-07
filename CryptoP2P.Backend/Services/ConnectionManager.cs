@@ -9,7 +9,6 @@ public class ConnectionManager : IConnectionManager
 {
   private HubConnection _peerConnection;
 
-
   private readonly ICryptoManager _cryptoManager;
   private readonly ICryptoVault _cryptoVault;
 

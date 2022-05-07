@@ -51,10 +51,8 @@ public class ChatHub : Hub
   {
     await _connectionManager.ConnectPeer(chatEndpoint);
 
-    //  Generate RSA
-    using var rsa = RSA.Create();
-    _cryptoVault.SavePrivateKey(rsa.ExportRSAPrivateKey());
-    var myPublicKey = rsa.ExportRSAPublicKey();
+    //  Get logged user RSA
+    var myPublicKey = _cryptoVault.LoadMyPublicKey();
     
     await _connectionManager.InvokeAsync("ServerServerInit", new InitConversationMessage
     {
@@ -73,10 +71,8 @@ public class ChatHub : Hub
 
     _cryptoVault.SavePublicKey(message.InitiatorPublicKey);
 
-    //  Generate RSA of my own and pass public key to initiator
-    using var rsa = RSA.Create();
-    _cryptoVault.SavePrivateKey(rsa.ExportRSAPrivateKey());
-    var myPublicKey = rsa.ExportRSAPublicKey();
+    //  Get my public key and pass it to the initiator
+    var myPublicKey = _cryptoVault.LoadMyPublicKey();
 
     await Clients.All.SendAsync("ServerServerInitResponse", new InitConversationMessage
     {

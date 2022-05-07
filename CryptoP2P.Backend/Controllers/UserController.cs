@@ -20,14 +20,14 @@ public class UserController : ControllerBase
   }
 
   [HttpPost("register")]
-  public async Task<IActionResult> Register([FromBody]RegisterForm registerForm)
+  public async Task<IActionResult> Register([FromBody] RegisterForm registerForm)
   {
     var userExists = _ctx.Users.Any(x => x.Id == registerForm.UserName);
-    if(userExists)
+    if (userExists)
       return BadRequest("User already exists");
-    if(registerForm.Password != registerForm.PasswordConfirm)
+    if (registerForm.Password != registerForm.PasswordConfirm)
       return BadRequest("Passwords do not match");
-    
+
     User user = new User
     {
       Id = registerForm.UserName
@@ -50,36 +50,59 @@ public class UserController : ControllerBase
     user.EncryptedPrivateKey = encryptedPrivateKey;
     user.PublicKey = rsa.ExportRSAPublicKey();
 
+    //  Store user password as sha512 in database
+    using var sha512 = SHA512.Create();
+    var passwordHash = sha512.ComputeHash(Encoding.UTF8.GetBytes(registerForm.Password));
+
+    user.PasswordHash = passwordHash;
+
     await _ctx.Users.AddAsync(user);
     await _ctx.SaveChangesAsync();
-    
+
     return Ok();
+  }
+
+  static bool Direct(byte[] a, byte[] b)
+  {
+    if (a.Length != b.Length) return false;
+    for (int i = 0; i < a.Length; ++i)
+    {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 
   [HttpPost("login")]
   public async Task<IActionResult> Login([FromBody] LoginForm loginForm)
   {
-    using var sha512 = SHA512.Create();
-    var passwordHash = sha512.ComputeHash(Encoding.UTF8.GetBytes(loginForm.Password));
-    
-    var userExists = _ctx.Users.Any(x => x.Id == loginForm.Username);
-    if(!userExists)
+    var userExists = _ctx.Users.Any(x => x.Id == loginForm.UserName);
+    if (!userExists)
       return BadRequest("Bad credentials given");
 
-    //  User exists, get his RSA pair, decrypt private key and store in ICryptoVault
+    using var sha512 = SHA512.Create();
+    var passwordHash = sha512.ComputeHash(Encoding.UTF8.GetBytes(loginForm.Password));
 
+    var user = _ctx.Users.First(x => x.Id == loginForm.UserName);
+    if (!Direct(user.PasswordHash, passwordHash))
+    {
+      return BadRequest("Bad credentials given");    
+    }
+
+    //  User exists, get his RSA pair, decrypt private key and store in ICryptoVault
     using var sha256 = SHA256.Create();
     var privateKeyPassword = sha256.ComputeHash(Encoding.UTF8.GetBytes(loginForm.Password));
 
-    var user = _ctx.Users.First(x =>  x.Id == loginForm.Username);
     using var aes = Aes.Create();
+    using var rsa = RSA.Create();
+
     aes.Padding = PaddingMode.PKCS7;
     aes.IV = user.IV;
     aes.Key = privateKeyPassword;
 
-    _cryptoVault.SavePublicKey(user.PublicKey);
+    _cryptoVault.SaveMyPublicKey(user.PublicKey);
 
-    var privateKey = aes.DecryptCfb(user.EncryptedPrivateKey, aes.IV); 
+    // Assign Fake Private key on wrong password
+    var privateKey = aes.DecryptCfb(user.EncryptedPrivateKey, aes.IV);
     _cryptoVault.SavePrivateKey(privateKey);
     return Ok();
   }

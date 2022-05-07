@@ -1,29 +1,16 @@
 <script setup lang="ts">
-import { HubConnectionBuilder } from '@microsoft/signalr'
 import { ref } from 'vue';
 import { ChatMessage } from '../models/chatMessage';
 
-import { myConnection } from '../modules/connections';
+import { myConnection, myServerUrl } from '../modules/connections';
 
-const myServerUrl = ref<string>();
-const myServerActive = ref<boolean>();
-myServerActive.value = false;
 
-const connectWithServer = async () => {
-  myConnection.value = new HubConnectionBuilder()
-    .withUrl(myServerUrl.value! + '/chat')
-    .build();
-
-  await myConnection.value.start();
-  myServerActive.value = true;
-
-  myConnection.value.on('ConversationStarted', () => {
-    peerServerReached.value = true;
-  })
-  myConnection.value.on('ReceiveMessage', (msg:ChatMessage) => {
-    messageLog.value?.push(msg);
-  });
-}
+myConnection.value!.on('ConversationStarted', () => {
+  peerServerReached.value = true;
+})
+myConnection.value!.on('ReceiveMessage', (msg:ChatMessage) => {
+  messageLog.value?.push(msg);
+});
 
 const peerServerUrl = ref<string>();
 const peerServerReached = ref<boolean>();
@@ -76,12 +63,7 @@ const onFileChange = async (event: Event) => {
 </script>
 
 <template>
-  <div v-if="!myServerActive">
-    Its lobby:<br>
-    <input v-model="myServerUrl" type="text" placeholder="Pass in your SignalR Server address" />
-    <button @click="connectWithServer">Connect with my SignalR Server</button>
-  </div>
-  <div v-else-if="!peerServerReached">
+  <div v-if="!peerServerReached">
     Connected with my: {{ myServerUrl }} <br>
     <input v-model="peerServerUrl" type="text" placeholder="Pass in peer SignalR Server address" />
     <button @click="connectWithPeerSignalR()">Connect with peer SignalR Server</button>
