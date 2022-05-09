@@ -13,6 +13,8 @@ public class FileController : ControllerBase
     _webHostEnvironment = webHostEnvironment;
   }
 
+  [RequestFormLimits(ValueLengthLimit = int.MaxValue, MultipartBodyLengthLimit = int.MaxValue)] 
+  [DisableRequestSizeLimit]
   [HttpPost]
   public async Task<ActionResult<ChatMessage>> PostFile(IFormFile formFile)
   {
