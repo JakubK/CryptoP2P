@@ -34,6 +34,7 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 app.UseStaticFiles(new StaticFileOptions
 {
+    ServeUnknownFileTypes = true,
     FileProvider = new PhysicalFileProvider(
         Path.Combine(app.Environment.WebRootPath, "static")
     ),
