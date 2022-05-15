@@ -4,6 +4,7 @@ import Lobby from '../views/Lobby.vue';
 import Register from '../views/Register.vue';
 import Login from '../views/Login.vue';
 import Connect from '../views/Connect.vue';
+import Chat from '../views/Chat.vue';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -25,6 +26,11 @@ const routes: RouteRecordRaw[] = [
     path: '/lobby',
     name: 'Lobby',
     component: Lobby
+  },
+  {
+    path: '/chat',
+    name: 'Chat',
+    component: Chat
   }
 ]
 
