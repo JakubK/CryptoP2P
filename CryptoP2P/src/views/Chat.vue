@@ -2,10 +2,16 @@
 import { ref } from 'vue';
 import { ChatMessage } from '../models/chatMessage';
 
+import * as crypto from 'crypto-js';
+
 import { myConnection, myServerUrl } from '../modules/connections';
+import { sessionKey } from '../modules/crypto';
+
+import { encrypt, decrypt } from '../utils/crypto';
 
 myConnection.value!.on('ReceiveMessage', (msg:ChatMessage) => {
-  messageLog.value?.push(msg);
+  msg.message = decrypt(msg.message, sessionKey.value!, crypto.mode.CBC);
+  messageLog.value?.push( msg);
 });
 
 const message = ref<string>();
@@ -13,15 +19,16 @@ const messageLog = ref<Array<ChatMessage>>();
 messageLog.value = [];
 
 const submitMessage = () => {
+  const encryptedMessage = encrypt(message.value!, sessionKey.value!, crypto.mode.CBC);
   const messageObject: ChatMessage = {
     blockMode: '',
     type: 'text',
-    message: message.value!
+    message: encryptedMessage
   }
   myConnection.value?.invoke('SendMessage', messageObject);
   const loggedMessage: ChatMessage = {
     ...messageObject,
-    message: 'Me: ' + messageObject.message
+    message: 'Me: ' + message.value!
   }
   messageLog.value?.push(loggedMessage);
 }
@@ -39,13 +46,18 @@ const onFileChange = async (event: Event) => {
   });
 
   const jsonResponse = await response.json();
+  const message = myServerUrl.value + '/' + jsonResponse.message;
+
   const messageObject: ChatMessage = {
     blockMode: '',
     type: 'file',
-    message: myServerUrl.value + '/' + jsonResponse.message
+    message
   }
-  myConnection.value?.invoke('SendMessage', messageObject)
   messageLog.value?.push(messageObject);
+  myConnection.value?.invoke('SendMessage', {
+    ...messageObject,
+    message: encrypt(message, sessionKey.value!, crypto.mode.CBC)
+  });
 }
 </script>
 
