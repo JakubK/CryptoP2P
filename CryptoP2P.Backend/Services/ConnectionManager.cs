@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.SignalR.Client;
 using CryptoP2P.Backend.Messages;
-using CryptoP2P.Backend.Models;
+using System.Text;
 
 namespace CryptoP2P.Backend.Services;
 
@@ -9,12 +9,10 @@ public class ConnectionManager : IConnectionManager
 {
   private HubConnection _peerConnection;
 
-  private readonly ICryptoManager _cryptoManager;
   private readonly ICryptoVault _cryptoVault;
 
-  public ConnectionManager(ICryptoManager cryptoManager, ICryptoVault cryptoVault)
+  public ConnectionManager(ICryptoVault cryptoVault)
   {
-    _cryptoManager = cryptoManager;
     _cryptoVault = cryptoVault;
   }
 
@@ -44,21 +42,15 @@ public class ConnectionManager : IConnectionManager
     // Everything is setup, passes session key encrypted via acquired public key
     _peerConnection.On<InitConversationMessage>("ServerServerInitResponse", async (message) => {
       _cryptoVault.SavePublicKey(message.InitiatorPublicKey);
-      //  Generate Session Key
-      using var aes = Aes.Create();
 
-      var key = aes.Key;
-      var iv = aes.IV;
-
-      _cryptoVault.SaveSessionKey(new SessionKey{
-        Key = key,
-        IV = iv
-      });
-
+      //  Send Session Key
       using var rsa = RSA.Create();
       rsa.ImportRSAPublicKey(_cryptoVault.LoadPublicKey(), out int _);
-      key = rsa.Encrypt(key, RSAEncryptionPadding.Pkcs1);
-      iv = rsa.Encrypt(iv, RSAEncryptionPadding.Pkcs1);
+
+      var sessionKey = _cryptoVault.LoadSessionkey();
+      var key = rsa.Encrypt(Encoding.UTF8.GetBytes(sessionKey.Key), RSAEncryptionPadding.Pkcs1);
+      var iv = rsa.Encrypt(Encoding.UTF8.GetBytes(sessionKey.IV), RSAEncryptionPadding.Pkcs1);
+
       await _peerConnection.InvokeAsync("PassSessionKey", new PassSessionKeyMessage
       {
         Key = key,
