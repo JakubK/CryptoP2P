@@ -1,8 +1,6 @@
 import * as crypto from 'crypto-js';
 import { SessionKey } from '../models/sessionKey';
 
-// CBC default
-
 export const generateSessionKey = (): SessionKey => {
   const key = crypto.lib.WordArray.random(16).toString();
   const iv = crypto.lib.WordArray.random(16).toString();

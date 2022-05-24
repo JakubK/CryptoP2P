@@ -2,16 +2,25 @@
 import { ref } from 'vue';
 import { ChatMessage } from '../models/chatMessage';
 
-import * as crypto from 'crypto-js';
-
 import { myConnection, myServerUrl } from '../modules/connections';
 import { sessionKey } from '../modules/crypto';
 
 import { encrypt, decrypt } from '../utils/crypto';
 
+import { supportedModes } from '../utils/consts';
+import { BlockMode } from '../models/blockMode';
+
+const selectedMode = ref<BlockMode>();
+const blockModes = ref<BlockMode[]>();
+blockModes.value = supportedModes;
+
+selectedMode.value = blockModes.value[0];
+
 myConnection.value!.on('ReceiveMessage', (msg:ChatMessage) => {
-  msg.message = decrypt(msg.message, sessionKey.value!, crypto.mode.CBC);
-  messageLog.value?.push( msg);
+  msg.message = decrypt(msg.message, sessionKey.value!, selectedMode.value?.value);
+  if(!msg.message)
+    msg.message = 'Block Mode Error!';
+  messageLog.value?.push(msg);
 });
 
 const message = ref<string>();
@@ -19,9 +28,8 @@ const messageLog = ref<Array<ChatMessage>>();
 messageLog.value = [];
 
 const submitMessage = () => {
-  const encryptedMessage = encrypt(message.value!, sessionKey.value!, crypto.mode.CBC);
+  const encryptedMessage = encrypt(message.value!, sessionKey.value!, selectedMode.value?.value);
   const messageObject: ChatMessage = {
-    blockMode: '',
     type: 'text',
     message: encryptedMessage
   }
@@ -49,14 +57,13 @@ const onFileChange = async (event: Event) => {
   const message = myServerUrl.value + '/' + jsonResponse.message;
 
   const messageObject: ChatMessage = {
-    blockMode: '',
     type: 'file',
     message
   }
   messageLog.value?.push(messageObject);
   myConnection.value?.invoke('SendMessage', {
     ...messageObject,
-    message: encrypt(message, sessionKey.value!, crypto.mode.CBC)
+    message: encrypt(message, sessionKey.value!, selectedMode.value?.value)
   });
 }
 </script>
@@ -67,6 +74,11 @@ const onFileChange = async (event: Event) => {
     <input v-model="message" type="text"/>
     <button @click="submitMessage">Submit message</button>
     <input @change="onFileChange" type="file"/>
+    <select v-model="selectedMode">
+      <option v-for="mode in blockModes" :value="mode" :key="mode.label">
+        {{ mode.label  }}
+      </option>
+    </select>
     <div>
       <template v-for="(message, index) in messageLog" :key="index">
         <div v-if="message.type === 'text'">
