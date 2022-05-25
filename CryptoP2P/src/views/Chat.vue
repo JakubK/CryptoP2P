@@ -10,11 +10,8 @@ import { encrypt, decrypt } from '../utils/crypto';
 import { supportedModes } from '../utils/consts';
 import { BlockMode } from '../models/blockMode';
 
-const selectedMode = ref<BlockMode>();
-const blockModes = ref<BlockMode[]>();
-blockModes.value = supportedModes;
-
-selectedMode.value = blockModes.value[0];
+const blockModes = ref<BlockMode[]>(supportedModes);
+const selectedMode = ref<BlockMode>(blockModes.value[0]);
 
 myConnection.value!.on('ReceiveMessage', (msg:ChatMessage) => {
   msg.message = decrypt(msg.message, sessionKey.value!, selectedMode.value?.value);
@@ -24,8 +21,7 @@ myConnection.value!.on('ReceiveMessage', (msg:ChatMessage) => {
 });
 
 const message = ref<string>();
-const messageLog = ref<Array<ChatMessage>>();
-messageLog.value = [];
+const messageLog = ref<Array<ChatMessage>>([]);
 
 const submitMessage = () => {
   const encryptedMessage = encrypt(message.value!, sessionKey.value!, selectedMode.value?.value);
