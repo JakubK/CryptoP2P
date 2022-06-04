@@ -4,6 +4,7 @@ import { myConnection, myServerUrl } from '../modules/connections';
 import { generateSessionKey } from '../utils/crypto';
 import router from '../router';
 import { sessionKey } from '../modules/crypto';
+
 const peerServerUrl = ref<string>('');
 
 myConnection.value!.on('ConversationStarted', (key) => {
@@ -22,9 +23,13 @@ const connectWithPeerSignalR = () => {
 </script>
 
 <template>
-  <div>
     Connected with my: {{ myServerUrl }} <br>
-    <input v-model="peerServerUrl" type="text" placeholder="Pass in peer SignalR Server address" />
-    <button @click="connectWithPeerSignalR()">Connect with peer SignalR Server</button>
-  </div>
+    <el-form>
+      <el-form-item label="Peer server address">
+        <el-input v-model="peerServerUrl"/>
+      </el-form-item>
+      <el-form-item>
+        <el-button @click="connectWithPeerSignalR">Start Conversation</el-button>
+      </el-form-item>
+    </el-form>
 </template>

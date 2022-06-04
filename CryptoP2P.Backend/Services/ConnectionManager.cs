@@ -25,7 +25,7 @@ public class ConnectionManager : IConnectionManager
     RegisterHandlers();
   }
 
-  public async Task InvokeAsync(string endpoint, object? arg)
+  public async Task InvokeAsync(string endpoint, object arg)
   {
     await _peerConnection.InvokeAsync(endpoint, arg);
   }

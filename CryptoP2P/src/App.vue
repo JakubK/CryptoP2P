@@ -1,10 +1,13 @@
 <template>
-  <div>
-    <router-link to="/">Connect</router-link>
-    <router-link to="/login">Login</router-link>
-    <router-link to="/register">Register</router-link>
+  <div class="common-layout">
+    <el-container>
+      <router-view></router-view>
+      <el-footer>
+        CryptoP2P Chat
+        Made by <el-link href="https://github.com/JakubK" type="primary">JakubK</el-link>
+      </el-footer>
+    </el-container>
   </div>
-  <router-view/>
 </template>
 
 <style>

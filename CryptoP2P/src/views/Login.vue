@@ -2,8 +2,11 @@
   import { ref } from 'vue';
   import { Credentials } from '../models/credentials';
 
-  import router from '../router';
   import { login } from '../services/user';
+
+  import { useNavigation } from '../modules/navigation';
+import { ElMessage } from 'element-plus';
+  const { next } = useNavigation();
 
   const userName = ref<string>();
   const password = ref<string>();
@@ -16,18 +19,28 @@
     const success = await login(payload);
 
     if(success) 
-      router.push('/lobby');
-    else 
+      next();
+    else {
+      ElMessage({
+        message: 'Wrong credentials passed',
+        type: 'warning',
+      })
       userName.value = password.value = '';
+    }
   }
 
 </script>
 
 <template>
-  <div>
-    Login to your account to be able to start Chat
-    <input type="text" placeholder="Username" v-model="userName"/>
-    <input type="password" placeholder="Password" v-model="password"/>
-    <button @click="submitLogin" type="button">Submit</button>
-  </div>
+  <el-form>
+    <el-form-item label="User name">
+      <el-input v-model="userName"/>
+    </el-form-item>
+    <el-form-item label="User password">
+      <el-input type="password" v-model="password" show-password/>
+    </el-form-item>
+    <el-form-item>
+      <el-button type="primary" @click="submitLogin">Log in</el-button>
+    </el-form-item>
+  </el-form>
 </template>

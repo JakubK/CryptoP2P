@@ -1,5 +1,4 @@
-export interface ChatMessage
-{
+export interface ChatMessage {
   type: string;
   message: string;
 }

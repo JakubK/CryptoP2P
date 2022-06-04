@@ -75,6 +75,7 @@ public class UserController : ControllerBase
   [HttpPost("login")]
   public async Task<IActionResult> Login([FromBody] LoginForm loginForm)
   {
+    await Task.FromResult(0);
     var userExists = _ctx.Users.Any(x => x.Id == loginForm.UserName);
     if (!userExists)
       return BadRequest("Bad credentials given");

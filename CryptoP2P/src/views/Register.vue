@@ -2,7 +2,7 @@
   import { ref } from 'vue';
   import { RegisterForm } from '../models/register';
   import { register } from '../services/user';
-  import router from '../router';
+  import { ElMessage } from 'element-plus';
 
   const userName = ref<string>();
   const password = ref<string>();
@@ -17,18 +17,32 @@
 
     const success = await register(payload);
     if(success)
-      router.push('/login')
+      ElMessage({
+        message: 'Congrats, new account created. Now try to log in',
+        type: 'success',
+      })
     else
-      userName.value = password.value = passwordConfirm.value = '';
+      ElMessage({
+        message: 'User already exists.',
+        type: 'warning',
+      })
+
   };
 </script>
 
 <template>
-  <div>
-    Register Page
-    <input type="text" placeholder="Username" v-model="userName"/>
-    <input type="password" placeholder="Password" v-model="password"/>
-    <input type="password" placeholder="Password Confirm" v-model="passwordConfirm"/>
-    <button @click="submitRegister" type="button">Create Account</button>
-  </div>
+  <el-form>
+    <el-form-item label="User name">
+      <el-input v-model="userName"/>
+    </el-form-item>
+    <el-form-item label="User password">
+      <el-input type="password" v-model="password" show-password/>
+    </el-form-item>
+    <el-form-item label="Repeat password">
+      <el-input type="password" v-model="passwordConfirm" show-password/>
+    </el-form-item>
+    <el-form-item>
+      <el-button type="primary" @click="submitRegister">Register</el-button>
+    </el-form-item>
+  </el-form>
 </template>

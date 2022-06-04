@@ -1,9 +1,11 @@
 <script setup lang="ts">
-  import { ref } from 'vue';
+  import { onMounted, ref } from 'vue';
   import { HubConnectionBuilder } from '@microsoft/signalr'
   import { myConnection, myServerUrl } from '../modules/connections';
   
-  import router from '../router';
+  import { useNavigation } from '../modules/navigation';
+  const { reset, next } = useNavigation();
+  onMounted(() => reset());
 
   const address = ref<string>();
   const connectWithMyServer = async () => {
@@ -15,14 +17,13 @@
     myConnection.value = connection;
     myServerUrl.value = address.value;
 
-    router.push('/register');
+    next();
   }
 </script>
 
 <template>
-  <div>
-    Connect with your own Server
-    <input type="text" placeholder="Your server's address" v-model="address"/>
-    <button @click="connectWithMyServer" type="button">Submit</button>
-  </div>
+  <el-container>
+    <el-input v-model="address" placeholder="Type Your server's address"/>
+    <el-button @click="connectWithMyServer">Connect</el-button>
+  </el-container>
 </template>
