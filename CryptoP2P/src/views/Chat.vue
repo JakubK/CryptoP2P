@@ -15,8 +15,10 @@ const selectedMode = ref<BlockMode>(blockModes.value[0]);
 
 myConnection.value!.on('ReceiveMessage', (msg: ChatMessage) => {
   msg.message = decrypt(msg.message, sessionKey.value!, selectedMode.value?.value);
-  if(!msg.message)
+  if(!msg.message) {
     msg.message = 'Block Mode Error!';
+    msg.type = 'text';
+  }
 
   const displayedMessage = <DisplayableChatMessage>msg;
   displayedMessage.sender = 'Peer'
